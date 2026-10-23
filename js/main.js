@@ -150,7 +150,7 @@ function reset() {
   ui.renderShield();
   ui.setOverdrive(false);
   ui.setScore(0); ui.setCombo(0); ui.setSectorTag(`S1 ${SECTORS[0].name}`);
-  camera.fov = 78; camera.updateProjectionMatrix();
+  camera.fov = 78;
 }
 
 function start() {
@@ -242,6 +242,9 @@ document.getElementById('btnStart').addEventListener('click', start);
 document.getElementById('btnAgain').addEventListener('click', () => { deadAt = 0; start(); });
 document.getElementById('btnPause').addEventListener('click', () => setPause(true));
 
+// 基础视场角随速度拉伸：速度感的一半来自视野
+function baseFov() { return 78 + (state.speed - 46) / 50 * 6; }
+
 // ================= 主循环 =================
 let last = performance.now();
 let dtGlobal = 0;
@@ -328,9 +331,12 @@ function tick(now) {
       camera.position.copy(camPos);
       camTarget.copy(pos).add(tan.clone().multiplyScalar(6)).add(new THREE.Vector3(0, 1.2, 0));
       camera.lookAt(camTarget);
-      // fov 冲击回弹（过门 / OVERDRIVE）
-      if (camera.fov > 78) {
-        camera.fov = Math.max(78, camera.fov - dtGlobal * 26);
+      // fov 冲击回弹：目标随速度拉伸（过门 / OVERDRIVE 的冲高慢慢回落到基线）
+      const target = baseFov();
+      if (Math.abs(camera.fov - target) > 0.05) {
+        camera.fov = camera.fov > target
+          ? Math.max(target, camera.fov - dtGlobal * 26)
+          : Math.min(target, camera.fov + dtGlobal * 8);   // 提速时平滑张开
         camera.updateProjectionMatrix();
       }
       pushTrail(pos, tan);

@@ -113,15 +113,19 @@ export function spawnRow(localT, lane, kind, curve, globalM) {
   });
 }
 
-export function spawnOrb(localT, lane, curve, globalM) {
+export function spawnOrb(localT, lane, curve, globalM, kind = 'energy') {
   const { pt, binorm } = curveFrame(localT, curve);
   const pos = pt.clone().add(binorm.clone().multiplyScalar(laneOffset(lane))).add(new THREE.Vector3(0, 1.1, 0));
-  const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), new THREE.MeshBasicMaterial({ color: 0xffe95c, fog: false }));
-  const glow = new THREE.PointLight(0xffe95c, 0.8, 6, 2);
+  const isHeal = kind === 'heal';
+  const mesh = new THREE.Mesh(
+    isHeal ? new THREE.BoxGeometry(0.52, 0.52, 0.52) : new THREE.OctahedronGeometry(0.42),
+    new THREE.MeshBasicMaterial({ color: isHeal ? 0x4fff8a : 0xffe95c, fog: false })
+  );
+  const glow = new THREE.PointLight(isHeal ? 0x4fff8a : 0xffe95c, 0.8, 6, 2);
   mesh.add(glow);
   mesh.position.copy(pos);
   obGroup.add(mesh);
-  orbs.push({ globalM, localT, lane, mesh, taken: false, spin: Math.random() * TAU, baseY: pos.y });
+  orbs.push({ globalM, localT, lane, mesh, taken: false, spin: Math.random() * TAU, baseY: pos.y, kind });
 }
 
 export function spawnGate(localT, curve, globalM, idx) {

@@ -122,6 +122,19 @@ export const sfx = {
       o.start(t + i * 0.09); o.stop(t + i * 0.09 + 0.4);
     });
   },
+  // 护盾回充：暖三连音
+  heal: () => {
+    if (!A.ok) return;
+    const t = A.ctx.currentTime;
+    [659.26, 830.6, 987.77].forEach((f0, i) => {
+      const o = A.ctx.createOscillator(), g = A.ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f0;
+      g.gain.setValueAtTime(0.1, t + i * 0.07);
+      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.22);
+      o.connect(g); g.connect(A.master); g.connect(A.delay);
+      o.start(t + i * 0.07); o.stop(t + i * 0.07 + 0.25);
+    });
+  },
   // OVERDRIVE 启动：滤波上扫
   overdrive: () => {
     if (!A.ok) return;

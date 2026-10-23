@@ -28,10 +28,14 @@ function spawnAhead() {
     if (plan) {
       for (const l of plan.lanes) spawnRow(localT, l, plan.kind, seg.curve, m);
     } else {
-      // 能量串：3~5 颗连排，诱导向安全线走
+      // 能量串：3~5 颗连排，诱导向安全线走；掉盾时小概率在串中混入护盾回充棱镜
       const lane = Math.floor(Math.random() * 3);
       const n = 3 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < n; i++) spawnOrb(clamp(localT + (i * 5) / (P * SEG_PT), 0, 1), lane, seg.curve, m + i * 5);
+      const heal = state.shields < 3 && Math.random() < 0.05;
+      for (let i = 0; i < n; i++) {
+        const kind = heal && i === Math.floor(n / 2) ? 'heal' : 'energy';
+        spawnOrb(clamp(localT + (i * 5) / (P * SEG_PT), 0, 1), lane, seg.curve, m + i * 5, kind);
+      }
     }
     // 区段门：每 800 米一道
     while (state.nextGateM < horizonM) {
@@ -53,6 +57,14 @@ function scoreMult() { return 1 + Math.floor(state.combo / 5) + (state.overdrive
 
 function collect(o) {
   o.taken = true;
+  if (o.kind === 'heal') {
+    state.shields = Math.min(3, state.shields + 1);
+    ui.renderShield();
+    sfx.heal();
+    popBurst(o.mesh.position, 0x4fff8a);
+    ui.showMsg('护盾回充 +1', 800);
+    return;
+  }
   state.orbsTaken++;
   state.combo++;
   state.maxCombo = Math.max(state.maxCombo, state.combo);

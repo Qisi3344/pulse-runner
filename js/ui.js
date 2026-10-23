@@ -5,7 +5,7 @@ import { state } from './state.js';
 const $ = id => document.getElementById(id);
 const el = {
   score: $('score'), combo: $('combo'), shield: $('shield'), speed: $('speed'),
-  msg: $('msg'), sectorTag: $('sectorTag'), announce: $('announce'),
+  msg: $('msg'), sectorTag: $('sectorTag'), announce: $('announce'), fx: $('fx'),
   overlay: $('overlay'), titleBest: $('titleBest'),
   pause: $('pause'), death: $('death'),
   finalScore: $('finalScore'), bestLine: $('bestLine'), statLine: $('statLine'),
@@ -32,6 +32,13 @@ export const ui = {
     void el.announce.offsetWidth;   // 重置动画
     el.announce.classList.add('show');
   },
+  // 全屏反馈闪：hit 撞击 / gate 过门 / od 过载启动
+  flash(name) {
+    el.fx.classList.remove('hit', 'gate', 'od');
+    void el.fx.offsetWidth;
+    el.fx.classList.add(name);
+  },
+  setOverdrive(on) { document.body.classList.toggle('od', on); },
   showTitle() {
     el.overlay.classList.remove('hide');
     el.death.classList.remove('show');

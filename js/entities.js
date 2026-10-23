@@ -7,6 +7,16 @@ import { player } from './state.js';
 
 export function laneOffset(lane) { return (lane - 1) * 2.6; }
 
+// 回收 mesh 时同步释放 GPU 资源（remove 只摘出场景，geometry/material 会一直占显存）
+function disposeMesh(mesh) {
+  mesh.traverse(n => {
+    if (n.geometry) n.geometry.dispose();
+    if (n.material) {
+      for (const m of Array.isArray(n.material) ? n.material : [n.material]) m.dispose();
+    }
+  });
+}
+
 // ================= 玩家飞船（纯几何拼装） =================
 export const ship = new THREE.Group();
 {
@@ -178,14 +188,14 @@ export function recycleBehind() {
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (!o.mesh || o.globalM < playerM - 14) {
-      if (o.mesh) obGroup.remove(o.mesh);
+      if (o.mesh) { obGroup.remove(o.mesh); disposeMesh(o.mesh); }
       obstacles.splice(i, 1);
     }
   }
   for (let i = orbs.length - 1; i >= 0; i--) {
     const o = orbs[i];
     if (o.taken || o.globalM < playerM - 14) {
-      if (!o.taken) obGroup.remove(o.mesh);
+      if (!o.taken) { obGroup.remove(o.mesh); disposeMesh(o.mesh); }
       orbs.splice(i, 1);
     }
   }
@@ -193,17 +203,18 @@ export function recycleBehind() {
     const g = gates[i];
     if (g.passed && g.globalM < playerM - 14) {
       obGroup.remove(g.mesh);
+      disposeMesh(g.mesh);
       gates.splice(i, 1);
     }
   }
 }
 
 export function clearEntities() {
-  for (const o of obstacles) if (o.mesh) obGroup.remove(o.mesh);
+  for (const o of obstacles) if (o.mesh) { obGroup.remove(o.mesh); disposeMesh(o.mesh); }
   obstacles.length = 0;
-  for (const o of orbs) if (!o.taken) obGroup.remove(o.mesh);
+  for (const o of orbs) if (!o.taken) { obGroup.remove(o.mesh); disposeMesh(o.mesh); }
   orbs.length = 0;
-  for (const g of gates) obGroup.remove(g.mesh);
+  for (const g of gates) { obGroup.remove(g.mesh); disposeMesh(g.mesh); }
   gates.length = 0;
 }
 

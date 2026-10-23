@@ -66,6 +66,7 @@ function hitObstacle(o) {
   state.combo = 0;
   state.invuln = 1.2;
   state.shake = 1;
+  ui.flash('hit');
   popBurst(o.mesh.position, 0xff2450);
   if (state.overdrive > 0) {
     // 过载中无敌：只击碎障碍不解体护盾
@@ -90,6 +91,7 @@ function checkGate() {
     const sec = SECTORS[Math.min(g.idx, SECTORS.length - 1)];
     ui.announceSector(`SECTOR ${String(g.idx + 1).padStart(2, '0')} · ${sec.name}`);
     ui.setSectorTag(`S${g.idx + 1} ${sec.name}`);
+    ui.flash('gate');
     sfx.gate();
     camera.fov = 86; camera.updateProjectionMatrix();   // 过门 fov 冲击
     popBurst(ship.position, new THREE.Color().setHSL(sec.hue, 1, 0.6).getHex());
@@ -112,12 +114,18 @@ function checkOverdrive() {
     state.invuln = Math.max(state.invuln, 0.6);
     sfx.overdrive();
     ui.announceSector('⟪ OVERDRIVE ⟫');
+    ui.flash('od');
     ui.showMsg('信号过载 · 得分翻倍 · 8 秒', 1400);
     camera.fov = 88; camera.updateProjectionMatrix();
   }
 }
 
 // ================= 流程 =================
+function setMode(m) {
+  state.mode = m;
+  document.body.classList.toggle('playing', m === 'play');
+}
+
 function reset() {
   resetTrack();
   clearEntities();
@@ -127,6 +135,7 @@ function reset() {
   state.maxCombo = 0; state.nearMisses = 0; state.orbsTaken = 0;
   state.sector = 0; state.overdrive = 0; state.overdriveUsed = false;
   ui.renderShield();
+  ui.setOverdrive(false);
   ui.setScore(0); ui.setCombo(0); ui.setSectorTag(`S1 ${SECTORS[0].name}`);
   camera.fov = 78; camera.updateProjectionMatrix();
 }
@@ -136,15 +145,16 @@ function start() {
   if (A.ctx && A.ctx.state === 'suspended') A.ctx.resume();
   if (A.ok) { seq.nextBeat = A.ctx.currentTime + 0.1; seq.beat = 0; }
   reset();
-  state.mode = 'play';
+  setMode('play');
   ui.hideTitle();
   ui.hideDeath();
   ui.hidePause();
 }
 
 function die() {
-  state.mode = 'dead';
+  setMode('dead');
   deadAt = performance.now();
+  ui.setOverdrive(false);
   sfx.boom();
   popBurst(ship.position, 0xff4fd8);
   const score = state.score + Math.floor(player.dist * 2);
@@ -160,11 +170,11 @@ function die() {
 // ================= 暂停 =================
 function setPause(on) {
   if (on && state.mode === 'play') {
-    state.mode = 'pause';
+    setMode('pause');
     if (A.ok) A.ctx.suspend();
     ui.showPause();
   } else if (!on && state.mode === 'pause') {
-    state.mode = 'play';
+    setMode('play');
     if (A.ok) A.ctx.resume();
     ui.hidePause();
     last = performance.now();   // 暂停期间积累的真实时间不带入 dt
@@ -211,7 +221,7 @@ bindUi({
     ui.hidePause();
     if (A.ok) A.ctx.resume();
     reset();
-    state.mode = 'title';
+    setMode('title');
     ui.showTitle();
   },
 });
@@ -343,6 +353,7 @@ function tick(now) {
       checkOverdrive();
     }
     state.invuln = Math.max(0, state.invuln - dtGlobal);
+    ui.setOverdrive(state.overdrive > 0);
     animateEntities(dtGlobal, state.time);
     recycleBehind();
 

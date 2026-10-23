@@ -11,6 +11,17 @@
   #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
   #vig { position: fixed; inset: 0; pointer-events: none; z-index: 2;
     background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 52%, rgba(10,0,24,.55) 100%); }
+  body.od #vig { background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 44%, rgba(140,40,255,.5) 100%);
+    animation: odPulse .9s ease-in-out infinite alternate; }
+  @keyframes odPulse { from { opacity: .68; } to { opacity: 1; } }
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0; }
+  #fx.hit { background: radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(255,36,80,.5) 100%);
+    animation: fxFlash .38s ease-out; }
+  #fx.gate { background: radial-gradient(ellipse at 50% 50%, rgba(150,240,255,.32), transparent 72%);
+    animation: fxFlash .32s ease-out; }
+  #fx.od { background: radial-gradient(ellipse at 50% 50%, rgba(255,233,92,.22), transparent 70%);
+    animation: fxFlash .55s ease-out; }
+  @keyframes fxFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
   #hud { position: fixed; top: 14px; left: 18px; pointer-events: none; text-shadow: 0 0 12px rgba(0,240,255,.8); z-index: 3; }
   #hud .score { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .06em; }
   #hud .combo { font-size: 15px; color: #ffe95c; text-shadow: 0 0 10px rgba(255,233,92,.9); height: 20px; }
@@ -32,7 +43,8 @@
   }
   #btnPause { position: fixed; top: 12px; right: 14px; z-index: 5; width: 40px; height: 40px; cursor: pointer;
     border: 1px solid rgba(0,240,255,.4); border-radius: 10px; background: rgba(5,10,30,.5); color: #7fe9ff;
-    font-size: 15px; line-height: 1; backdrop-filter: blur(4px); }
+    font-size: 15px; line-height: 1; backdrop-filter: blur(4px); display: none; }
+  body.playing #btnPause { display: block; }
   #btnPause:hover { background: rgba(0,240,255,.14); }
   .overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: radial-gradient(ellipse at 50% 42%, rgba(30,0,60,.86), rgba(2,0,10,.96) 72%); z-index: 10;
@@ -85,6 +97,7 @@
 <body>
 <canvas id="c"></canvas>
 <div id="vig"></div>
+<div id="fx"></div>
 <div id="hud"><div class="score" id="score">0</div><div class="combo" id="combo"></div><div id="sectorTag"></div></div>
 <div id="shield"><i class="on"></i><i class="on"></i><i class="on"></i></div>
 <button id="btnPause" title="暂停 (ESC)">▮▮</button>

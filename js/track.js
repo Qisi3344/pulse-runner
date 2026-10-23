@@ -69,7 +69,13 @@ export function ensureTubes(playerTParam) {
   while (rail.tubes.length > 2 && rail.tubes[0].toIdx < curIdx * SEG_POINTS - 10) {
     const dead = rail.tubes.shift();
     scene.remove(dead.mesh); scene.remove(dead.wire);
-    if (rail.rings.length) scene.remove(rail.rings.shift());
+    dead.mesh.geometry.dispose();
+    dead.mesh.material.dispose(); dead.wire.material.dispose();
+    if (rail.rings.length) {
+      const ring = rail.rings.shift();
+      scene.remove(ring);
+      ring.geometry.dispose(); ring.material.dispose();
+    }
   }
 }
 
@@ -80,8 +86,15 @@ export function tubeIndexFor(tParam) {
 }
 
 export function resetTrack() {
-  for (const t of rail.tubes) { scene.remove(t.mesh); scene.remove(t.wire); }
-  for (const r of rail.rings) scene.remove(r);
+  for (const t of rail.tubes) {
+    scene.remove(t.mesh); scene.remove(t.wire);
+    t.mesh.geometry.dispose();
+    t.mesh.material.dispose(); t.wire.material.dispose();
+  }
+  for (const r of rail.rings) {
+    scene.remove(r);
+    r.geometry.dispose(); r.material.dispose();
+  }
   rail.rings.length = 0;
   rail.tubes = []; rail.pts = [new THREE.Vector3(0, 0, 0)]; rail.heading = 0; rail.pitch = 0; rail.tGen = 1;
   while (rail.tGen < 34) pushControlPoint();

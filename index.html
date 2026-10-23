@@ -78,6 +78,7 @@
   #pause .vol { margin-top: 20px; text-align: left; }
   #pause .vol label { font-size: 11px; letter-spacing: .3em; color: rgba(232,246,255,.6); display: block; margin-bottom: 8px; }
   #pause input[type=range] { width: 100%; accent-color: #00f0ff; cursor: pointer; }
+  #pause .keys2 { margin-top: 16px; font-size: 11px; line-height: 1.9; letter-spacing: .15em; color: rgba(232,246,255,.4); }
   #death { position: fixed; inset: 0; z-index: 11; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: radial-gradient(ellipse at 50% 45%, rgba(70,0,30,.9), rgba(2,0,6,.97) 75%); opacity: 0; pointer-events: none; transition: opacity .9s; }
   #death.show { opacity: 1; pointer-events: auto; }
@@ -124,6 +125,7 @@
       <label>主音量</label>
       <input type="range" id="vol" min="0" max="1" step="0.01">
     </div>
+    <p class="keys2">A / D 变道 · SPACE 跳 · ESC 继续<br>手机：左右半区变道 · 上滑跳</p>
   </div>
 </div>
 <div id="death" class="overlay">
@@ -132,6 +134,7 @@
   <div class="best" id="bestLine">最佳 0</div>
   <div id="statLine"></div>
   <button id="btnAgain">再 冲 一 次</button>
+  <div class="hint">SPACE / ENTER 再冲一次</div>
 </div>
 <script src="js/vendor/three.min.js"></script>
 <script type="module" src="js/main.js"></script>

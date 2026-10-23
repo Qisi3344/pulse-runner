@@ -252,7 +252,7 @@
     }
     mesh.lookAt(pos.clone().add(tan));
     obGroup.add(mesh);
-    obstacles.push({ localT, lane, kind, mesh, globalM });
+    obstacles.push({ localT, lane, kind, mesh, globalM, nearMiss: false });
   }
 
   function spawnOrb(localT, lane, curve, globalM) {
@@ -452,9 +452,22 @@
         const playerM = player.dist;
         for (const o of obstacles) {
           if (!o.mesh || Math.abs(o.globalM - playerM) > 2.4) continue;
-          const laneHit = Math.abs(o.lane - player.laneT) < 0.6;
+          const laneGap = Math.abs(o.lane - player.laneT);
+          const laneHit = laneGap < 0.6;
           const jumpOk = o.kind === 'low' && player.jumpT < 0.62;
-          if (laneHit && !jumpOk && state.invuln <= 0) hitObstacle(o);
+          if (laneHit && !jumpOk && state.invuln <= 0) { hitObstacle(o); continue; }
+          // 擦身而过：跨过障碍的那一帧贴着边（侧向 0.6~1.1 或同道跳过高杆），奖励手感分
+          if (!o.nearMiss && o.globalM < playerM && (laneGap < 1.15 || (jumpOk && laneGap < 0.6))) {
+            o.nearMiss = true;
+            state.combo++;
+            state.score += 150;
+            sfx.pick(state.combo);
+            const msg = document.getElementById('msg');
+            msg.textContent = '擦身而过 +150';
+            msg.style.opacity = 1;
+            clearTimeout(msg._t);
+            msg._t = setTimeout(() => (msg.style.opacity = 0), 700);
+          }
         }
         for (const o of orbs) {
           if (o.taken || Math.abs(o.globalM - playerM) > 2.6 || Math.abs(o.lane - player.laneT) > 0.55) continue;

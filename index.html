@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>脉冲回廊 · PULSE RUNNER</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #05000e; overflow: hidden; }
+  body { font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: #e8f6ff; user-select: none; }
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+  #vig { position: fixed; inset: 0; pointer-events: none; z-index: 2;
+    background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 52%, rgba(10,0,24,.55) 100%); }
+  #hud { position: fixed; top: 14px; left: 18px; pointer-events: none; text-shadow: 0 0 12px rgba(0,240,255,.8); }
+  #hud .score { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .06em; }
+  #hud .combo { font-size: 15px; color: #ffe95c; text-shadow: 0 0 10px rgba(255,233,92,.9); height: 20px; }
+  #shield { position: fixed; top: 16px; right: 18px; display: flex; gap: 7px; pointer-events: none; }
+  #shield i { width: 26px; height: 9px; background: rgba(0,240,255,.16); border: 1px solid rgba(0,240,255,.5); border-radius: 5px; box-shadow: 0 0 8px rgba(0,240,255,.35); }
+  #shield i.on { background: #00f0ff; box-shadow: 0 0 14px #00f0ff; }
+  #speed { position: fixed; bottom: 12px; left: 18px; font-size: 12px; letter-spacing: .3em; color: rgba(232,246,255,.55); pointer-events: none; }
+  #msg { position: fixed; top: 34%; width: 100%; text-align: center; font-size: 22px; letter-spacing: .4em;
+    color: #ffe95c; text-shadow: 0 0 18px rgba(255,233,92,.9); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #overlay { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 42%, rgba(30,0,60,.86), rgba(2,0,10,.96) 72%); z-index: 10;
+    transition: opacity .7s; }
+  #overlay.hide { opacity: 0; pointer-events: none; }
+  #overlay .kicker { font-size: 11px; letter-spacing: .7em; color: #7f6aff; margin-bottom: 8px; }
+  #overlay h1 { font-size: clamp(40px, 11vw, 72px); font-weight: 800; letter-spacing: .1em;
+    background: linear-gradient(100deg, #00f0ff 10%, #b96bff 45%, #ff4fd8 80%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 24px rgba(150,80,255,.65)); }
+  #overlay .sub { margin: 8px 0 4px; font-size: 13px; letter-spacing: .4em; color: rgba(232,246,255,.75); }
+  #overlay .keys { margin: 16px 0 26px; font-size: 12.5px; line-height: 2.1; color: rgba(232,246,255,.55); text-align: center; }
+  #overlay button { font: inherit; font-size: 17px; font-weight: 700; letter-spacing: .4em; cursor: pointer;
+    padding: 14px 46px; color: #05000e; border: none; border-radius: 999px;
+    background: linear-gradient(96deg, #00f0ff, #b96bff);
+    box-shadow: 0 0 28px rgba(120,80,255,.75), 0 4px 0 rgba(0,0,0,.4); }
+  #overlay button:active { transform: translateY(2px); }
+  #death { position: fixed; inset: 0; z-index: 11; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 45%, rgba(70,0,30,.9), rgba(2,0,6,.97) 75%); opacity: 0; pointer-events: none; transition: opacity .9s; }
+  #death.show { opacity: 1; pointer-events: auto; }
+  #death h2 { font-size: 30px; font-weight: 800; letter-spacing: .3em; color: #ff4f8f; text-shadow: 0 0 26px rgba(255,79,143,.8); margin-bottom: 8px; }
+  #death .big { font-size: 54px; font-weight: 800; font-variant-numeric: tabular-nums;
+    background: linear-gradient(100deg, #ffe95c, #ff4fd8); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 6px 0; }
+  #death .best { font-size: 13px; letter-spacing: .2em; color: rgba(232,246,255,.55); margin-bottom: 26px; }
+  #death button { font: inherit; font-size: 16px; font-weight: 700; letter-spacing: .35em; cursor: pointer;
+    padding: 13px 42px; color: #05000e; border: none; border-radius: 999px;
+    background: linear-gradient(96deg, #ffe95c, #ff4f8f); box-shadow: 0 0 24px rgba(255,120,90,.6); }
+  #touch { position: fixed; inset: 0; z-index: 4; display: none; }
+  @media (pointer: coarse) { #touch { display: block; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="hud"><div class="score" id="score">0</div><div class="combo" id="combo"></div></div>
+<div id="shield"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+<div id="speed">×1.0</div>
+<div id="msg"></div>
+<div id="touch"></div>
+<div id="overlay">
+  <div class="kicker">— PULSE RUNNER —</div>
+  <h1>脉冲回廊</h1>
+  <p class="sub">跟着节拍 · 别碰红色 · 收集同调</p>
+  <p class="keys">A / D 或 ← → 切换三车道 · 空格 跃过矮障<br>手机：左右半区点击移动，上滑跳<br>能量块串起来吃，连击倍率会起飞</p>
+  <button id="btnStart">进 入 隧 道</button>
+</div>
+<div id="death">
+  <h2>信号中断</h2>
+  <div class="big" id="finalScore">0</div>
+  <div class="best" id="bestLine">最佳 0</div>
+  <button id="btnAgain">再 冲 一 次</button>
+</div>
+<script src="js/vendor/three.min.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

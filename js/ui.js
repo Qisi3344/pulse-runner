@@ -54,7 +54,8 @@ export const ui = {
       `<span>距离 <b>${Math.floor(st.dist)}m</b></span>` +
       `<span>最大连击 <b>×${st.maxCombo}</b></span>` +
       `<span>擦身 <b>${st.nearMisses}</b></span>` +
-      `<span>抵达 <b>${st.sectorName}</b></span>`;
+      `<span>抵达 <b>${st.sectorName}</b></span>` +
+      `<span>评级 <b class="grade">${st.grade || 'D'}</b></span>`;
     el.death.classList.add('show');
   },
   hideDeath() { el.death.classList.remove('show'); },

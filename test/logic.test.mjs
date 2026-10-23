@@ -1,6 +1,6 @@
 // 纯逻辑测试：node test/logic.test.mjs
 import assert from 'node:assert/strict';
-import { SECTOR_LEN, SECTORS, sectorIndexAt, sectorHueAt, planRow } from '../js/sectors.js';
+import { SECTOR_LEN, SECTORS, sectorIndexAt, sectorHueAt, planRow, gradeAt } from '../js/sectors.js';
 
 let pass = 0, fail = 0;
 function t(name, fn) {
@@ -129,6 +129,27 @@ t('扫描闸密度随区段递增（S5 > S3 > S2）', () => {
   };
   assert.ok(rate(4) > rate(2), `S5=${rate(4).toFixed(2)} S3=${rate(2).toFixed(2)}`);
   assert.ok(rate(2) > rate(1), `S3=${rate(2).toFixed(2)} S2=${rate(1).toFixed(2)}`);
+});
+
+// ---- 结算评级 ----
+t('评级阶梯：边界值与单调性', () => {
+  assert.equal(gradeAt(0), 'D');
+  assert.equal(gradeAt(999), 'D');
+  assert.equal(gradeAt(1000), 'C');
+  assert.equal(gradeAt(2499), 'C');
+  assert.equal(gradeAt(2500), 'B');
+  assert.equal(gradeAt(5000), 'A');
+  assert.equal(gradeAt(8000), 'S');
+  assert.equal(gradeAt(12000), 'SS');
+  assert.equal(gradeAt(99999), 'SS');
+});
+t('评级单调：距离更远评级不降', () => {
+  let prev = 0;
+  for (let d = 0; d <= 15000; d += 100) {
+    const order = ['D', 'C', 'B', 'A', 'S', 'SS'];
+    assert.ok(order.indexOf(gradeAt(d)) >= order.indexOf(gradeAt(prev)), `d=${d}`);
+    prev = d;
+  }
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

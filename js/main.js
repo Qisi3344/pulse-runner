@@ -9,7 +9,7 @@ import {
   spawnRow, spawnOrb, spawnGate, laneAt, animateEntities, recycleBehind, clearEntities,
   popBurst, animateBurst,
 } from './entities.js';
-import { SECTOR_LEN, SECTORS, sectorIndexAt, sectorHueAt, planRow } from './sectors.js';
+import { SECTOR_LEN, SECTORS, sectorIndexAt, sectorHueAt, planRow, gradeAt } from './sectors.js';
 import { animateAmbience } from './ambience.js';
 import { ui, bindUi } from './ui.js';
 
@@ -177,7 +177,8 @@ function die() {
   const sec = SECTORS[Math.min(state.sector, SECTORS.length - 1)];
   ui.showDeath(score, best, {
     dist: player.dist, maxCombo: state.maxCombo, nearMisses: state.nearMisses,
-    sectorName: `S${state.sector + 1} ${sec.name}`,
+    sectorName: `S${Math.min(state.sector, SECTORS.length - 1) + 1} ${sec.name}`,
+    grade: gradeAt(player.dist),
   });
 }
 

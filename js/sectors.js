@@ -50,3 +50,18 @@ export function planRow(rng, sectorIdx) {
   }
   return { kind, lanes };
 }
+
+// 结算距离评级：C 起步、SS 只留给穿过全部五个区段的人
+export const GRADES = [
+  { min: 12000, grade: 'SS' },
+  { min: 8000,  grade: 'S' },
+  { min: 5000,  grade: 'A' },
+  { min: 2500,  grade: 'B' },
+  { min: 1000,  grade: 'C' },
+];
+export function gradeAt(dist) {
+  for (const g of GRADES) {
+    if (dist >= g.min) return g.grade;
+  }
+  return 'D';
+}

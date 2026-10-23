@@ -18,7 +18,7 @@
 | ![OVERDRIVE](docs/screenshots/overdrive.png) | ![暂停](docs/screenshots/pause.png) |
 | **OVERDRIVE 过载** | **暂停菜单** |
 
-结算（距离 / 最大连击 / 擦身 / 抵达区段）见 `docs/screenshots/death-stats.png`。
+结算（距离 / 最大连击 / 擦身 / 抵达区段 / **评级 C→SS**，8000m S、12000m SS）见 `docs/screenshots/death-stats.png`。
 
 ## 运行
 

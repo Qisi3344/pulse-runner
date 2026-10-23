@@ -99,8 +99,9 @@ function checkGate() {
   for (const g of gates) {
     if (g.passed || g.globalM > player.dist) continue;
     g.passed = true;
-    state.sector = g.idx;
-    const sec = SECTORS[Math.min(g.idx, SECTORS.length - 1)];
+    // 门序号随距离无限增长，但区段表只有 5 段——索引一律 clamp 到终段「无终超载」
+    state.sector = Math.min(g.idx, SECTORS.length - 1);
+    const sec = SECTORS[state.sector];
     ui.announceSector(`SECTOR ${String(g.idx + 1).padStart(2, '0')} · ${sec.name}`);
     ui.setSectorTag(`S${g.idx + 1} ${sec.name}`);
     ui.flash('gate');
@@ -172,7 +173,7 @@ function die() {
   const score = state.score + Math.floor(player.dist * 2);
   const best = Math.max(score, +(localStorage.getItem('pulse_best') || 0));
   localStorage.setItem('pulse_best', best);
-  const sec = SECTORS[state.sector];
+  const sec = SECTORS[Math.min(state.sector, SECTORS.length - 1)];
   ui.showDeath(score, best, {
     dist: player.dist, maxCombo: state.maxCombo, nearMisses: state.nearMisses,
     sectorName: `S${state.sector + 1} ${sec.name}`,

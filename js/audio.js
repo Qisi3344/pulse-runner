@@ -79,7 +79,9 @@ export const sfx = {
   pick: combo => {
     if (!A.ok) return;
     const t = A.ctx.currentTime;
-    const midi = 76 + Math.min(12, combo) * 0.5;
+    // 拾取音随当前区段根音走：连击越高音越亮，但始终落在区段和声里
+    const root = SECTORS[sectorIndexAt(player.dist)].prog[0];
+    const midi = 69 - 45 + root + 7 + Math.min(12, combo) * 0.5;
     const o = A.ctx.createOscillator(), g = A.ctx.createGain();
     o.type = 'triangle'; o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
     g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);

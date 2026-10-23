@@ -84,5 +84,52 @@ t('空排（能量串槽位）返回 null', () => {
   assert.equal(planRow(() => 0, 0), null);
 });
 
+// ---- 分布统计：配方改权重时的回归保护 ----
+t('分布统计：各区段 kind 占比与权重一致（±8pp 容差）', () => {
+  for (let si = 0; si < SECTORS.length; si++) {
+    const s = SECTORS[si];
+    const total = s.orbW + s.barW + s.lowW + s.sweepW;
+    const N = 6000;
+    const count = { bar: 0, low: 0, sweep: 0 };
+    for (let i = 0; i < N; i++) {
+      const plan = planRow(Math.random, si);
+      if (plan) count[plan.kind]++;
+    }
+    // 条件分布：排除空排后各障碍 kind 的占比
+    const denom = count.bar + count.low + count.sweep;
+    for (const k of ['bar', 'low', 'sweep']) {
+      const expect = s[k + 'W'] / (s.barW + s.lowW + s.sweepW);
+      const actual = count[k] / denom;
+      assert.ok(
+        Math.abs(actual - expect) < 0.08,
+        `S${si + 1} ${k}: expect≈${expect.toFixed(2)} actual=${actual.toFixed(2)}`
+      );
+    }
+    // 空排占比
+    const orbShare = 1 - denom / N;
+    assert.ok(Math.abs(orbShare - s.orbW / total) < 0.03, `S${si + 1} orbShare=${orbShare.toFixed(2)}`);
+  }
+});
+t('S1 完全没有扫描闸（大量采样为零）', () => {
+  let sweeps = 0;
+  for (let i = 0; i < 4000; i++) {
+    const plan = planRow(Math.random, 0);
+    if (plan && plan.kind === 'sweep') sweeps++;
+  }
+  assert.equal(sweeps, 0);
+});
+t('扫描闸密度随区段递增（S5 > S3 > S2）', () => {
+  const rate = si => {
+    let n = 0, d = 0;
+    for (let i = 0; i < 6000; i++) {
+      const plan = planRow(Math.random, si);
+      if (plan) { d++; if (plan.kind === 'sweep') n++; }
+    }
+    return n / d;
+  };
+  assert.ok(rate(4) > rate(2), `S5=${rate(4).toFixed(2)} S3=${rate(2).toFixed(2)}`);
+  assert.ok(rate(2) > rate(1), `S3=${rate(2).toFixed(2)} S2=${rate(1).toFixed(2)}`);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

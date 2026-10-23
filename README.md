@@ -37,7 +37,11 @@ python -m http.server 8000
 node test/logic.test.mjs
 ```
 
-覆盖区段索引边界、色相范围、行配方（扫描闸单车道 / 车道数 ≤ maxBlocked / 任何一排不可能封死全部三车道 / 确定性回归）。
+覆盖区段索引边界、色相范围、行配方（扫描闸单车道 / 车道数 ≤ maxBlocked / 任何一排不可能封死全部三车道 / 确定性回归），以及**分布统计**（各区段 kind 占比与权重一致 ±8pp、扫描闸密度逐段递增）。
+
+## 性能实测
+
+ZCode 内嵌浏览器（1280×720，`devicePixelRatio` 1.5 上限）实测：**84 FPS**，JS 堆 14–25MB（万米压力跑稳定，含 340 粒环境粒子层）。GPU 资源（geometry/material）在实体回收与轨道段回收时同步 dispose——行进中的 Tube 回收是最高频分配点。桌面独立 Chrome 全速 GPU 下帧率余量更大。
 
 ## 架构
 

@@ -10,6 +10,7 @@ import {
   popBurst, animateBurst,
 } from './entities.js';
 import { SECTOR_LEN, SECTORS, sectorIndexAt, sectorHueAt, planRow } from './sectors.js';
+import { animateAmbience } from './ambience.js';
 import { ui, bindUi } from './ui.js';
 
 // ================= 生成：按区段配方向前铺内容 =================
@@ -216,16 +217,46 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => (keys[e.code] = false));
 window.addEventListener('blur', () => setPause(true));
 
+// 触控：下半屏点击立即变道；上半屏点按跳、向上滑也跳（真滑动检测）
+const touchTrack = {};
 document.getElementById('touch').addEventListener('touchstart', e => {
   if (state.mode !== 'play') return;
-  const t0 = e.changedTouches[0];
-  const h = window.innerHeight;
-  if (t0.clientY < h * 0.55 && player.jumpT > 0.9) { player.jumpT = 0; sfx.jump(); return; }
-  if (t0.clientX < window.innerWidth / 2) player.lane = Math.max(0, player.lane - 1);
-  else player.lane = Math.min(2, player.lane + 1);
-  sfx.jump();
+  for (const t of e.changedTouches) {
+    touchTrack[t.identifier] = { x: t.clientX, y: t.clientY, swiped: false };
+  }
   e.preventDefault();
 }, { passive: false });
+document.getElementById('touch').addEventListener('touchmove', e => {
+  if (state.mode !== 'play') return;
+  for (const t of e.changedTouches) {
+    const tr = touchTrack[t.identifier];
+    if (!tr || tr.swiped) continue;
+    if (t.clientY - tr.y < -28 && player.jumpT > 0.9) {   // 上滑超过 28px → 跳
+      tr.swiped = true;
+      player.jumpT = 0;
+      sfx.jump();
+    }
+  }
+  e.preventDefault();
+}, { passive: false });
+document.getElementById('touch').addEventListener('touchend', e => {
+  for (const t of e.changedTouches) {
+    const tr = touchTrack[t.identifier];
+    delete touchTrack[t.identifier];
+    if (!tr || state.mode !== 'play') continue;
+    if (tr.swiped) continue;
+    const startY = tr.y;
+    if (startY < window.innerHeight * 0.55) {
+      if (player.jumpT > 0.9) { player.jumpT = 0; sfx.jump(); }
+    } else if (tr.x < window.innerWidth / 2) {
+      player.lane = Math.max(0, player.lane - 1);
+      sfx.jump();
+    } else {
+      player.lane = Math.min(2, player.lane + 1);
+      sfx.jump();
+    }
+  }
+});
 
 bindUi({
   onResume: () => setPause(false),
@@ -371,10 +402,11 @@ function tick(now) {
       checkGate();
       checkOverdrive();
     }
-    state.invuln = Math.max(0, state.invuln - dtGlobal);
-    ui.setOverdrive(state.overdrive > 0);
-    animateEntities(dtGlobal, state.time);
-    recycleBehind();
+  state.invuln = Math.max(0, state.invuln - dtGlobal);
+  ui.setOverdrive(state.overdrive > 0);
+  animateEntities(dtGlobal, state.time);
+  animateAmbience(dtGlobal, state.time);
+  recycleBehind();
 
     // HUD
     ui.setScore(state.score + Math.floor(player.dist * 2));

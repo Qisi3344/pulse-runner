@@ -3,13 +3,13 @@
 
 export const SECTOR_LEN = 800;
 
-// 权重 w 仅为相对值；maxBlocked 单排最多同时封几条车道；sweepMax 同屏扫描闸密度上限由权重间接控制
+// 权重 w 仅为相对值；maxBlocked 单排最多同时封几条车道；amb 环境粒子行为
 export const SECTORS = [
-  { name: '青锚起航', en: 'ANCHOR RUN',   hue: 0.52, orbW: 46, barW: 26, lowW: 28, sweepW: 0,  maxBlocked: 1 },
-  { name: '紫晶回廊', en: 'AMETHYST HALL', hue: 0.76, orbW: 40, barW: 26, lowW: 22, sweepW: 12, maxBlocked: 1 },
-  { name: '熔金峡谷', en: 'MOLTEN CANYON', hue: 0.09, orbW: 36, barW: 28, lowW: 20, sweepW: 16, maxBlocked: 2 },
-  { name: '相位裂隙', en: 'PHASE RIFT',   hue: 0.44, orbW: 32, barW: 30, lowW: 18, sweepW: 20, maxBlocked: 2 },
-  { name: '无终超载', en: 'TERMINAL LOAD', hue: 0.9,  orbW: 30, barW: 32, lowW: 16, sweepW: 22, maxBlocked: 2 },
+  { name: '青锚起航', en: 'ANCHOR RUN',   hue: 0.52, orbW: 46, barW: 26, lowW: 28, sweepW: 0,  maxBlocked: 1, amb: 'float' },
+  { name: '紫晶回廊', en: 'AMETHYST HALL', hue: 0.76, orbW: 40, barW: 26, lowW: 22, sweepW: 12, maxBlocked: 1, amb: 'float' },
+  { name: '熔金峡谷', en: 'MOLTEN CANYON', hue: 0.09, orbW: 36, barW: 28, lowW: 20, sweepW: 16, maxBlocked: 2, amb: 'rise' },
+  { name: '相位裂隙', en: 'PHASE RIFT',   hue: 0.44, orbW: 32, barW: 30, lowW: 18, sweepW: 20, maxBlocked: 2, amb: 'fall' },
+  { name: '无终超载', en: 'TERMINAL LOAD', hue: 0.9,  orbW: 30, barW: 32, lowW: 16, sweepW: 22, maxBlocked: 2, amb: 'flicker' },
 ];
 
 // 区段序号：0..4，之后停在「无终超载」但色相继续流转

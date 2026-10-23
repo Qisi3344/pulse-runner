@@ -22,12 +22,16 @@
 
 ## 运行
 
-纯静态，无需构建：
+纯静态，无需构建。Windows 最省事：双击 `D:\zcode\projects\启动-脉冲回廊.bat`（自动起服务器并打开浏览器）。
+
+或手动：
 
 ```bash
-python -m http.server 8000
+python serve.py 8000
 # 打开 http://localhost:8000
 ```
+
+（serve.py 带 no-cache 头，改代码刷新即生效；`python -m http.server` 也可以，但开发时会撞浏览器缓存。）
 
 音频需要一次点击后才开始（浏览器规矩）。最高分与音量存在 localStorage。
 

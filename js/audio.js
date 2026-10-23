@@ -1,6 +1,7 @@
 // WebAudio 步进音序器：kick / hat / bass / arp 全合成，零音频文件。
-// BPM 跟随游戏速度；beatPulseAt 给主循环提供节拍脉冲信号。
-import { state } from './state.js';
+// BPM 跟随游戏速度；和弦走向随区段换气；beatPulseAt 给主循环提供节拍脉冲信号。
+import { state, player } from './state.js';
+import { SECTORS, sectorIndexAt } from './sectors.js';
 
 export const A = { ok: false, bpm: 122 };
 
@@ -148,22 +149,24 @@ export const sfx = {
   },
 };
 
-// 16 步音序（Am F C G 的 synthwave 走向）
-const PROG = [45, 41, 48, 43];           // A2 F2 C3 G2 根音
+// 16 步音序：ARP_STEPS 以 A2（45）为基准记录相对音高，随区段根音平移
 const ARP_STEPS = [69, 72, 76, 72, 69, 76, 81, 76, 69, 72, 76, 72, 67, 72, 76, 79];
+const A_ROOT = 45;
 export const seq = { nextBeat: 0, beat: 0, bar: 0 };
 export const beatPulseAt = [];           // 排定的节拍时刻（audio 时钟）
 
 export function schedule() {
   if (!A.ok) return;
   const ahead = A.ctx.currentTime + 0.28;
+  const prog = SECTORS[sectorIndexAt(player.dist)].prog;
   while (seq.nextBeat < ahead) {
     const t = seq.nextBeat;
     const step = seq.beat % 4, barStep = seq.beat % 16;
+    const root = prog[Math.floor(seq.beat / 4) % 4];
     if (step === 0) kick(t);
     if (seq.beat % 2 === 0) hat(t, false); else if (seq.beat % 8 === 3) hat(t, true);
-    if (step === 0 || step === 2) bass(t, PROG[Math.floor(seq.beat / 4) % 4] + (step === 2 ? 12 : 0), (60 / A.bpm) * 0.9);
-    arp(t, ARP_STEPS[barStep] + 12);
+    if (step === 0 || step === 2) bass(t, root + (step === 2 ? 12 : 0), (60 / A.bpm) * 0.9);
+    arp(t, ARP_STEPS[barStep] - A_ROOT + root + 12);
     // 给游戏循环一个节拍脉冲信号（提前通知）
     beatPulseAt.push(t);
     seq.nextBeat += (60 / A.bpm) / 2;      // 八分音符
